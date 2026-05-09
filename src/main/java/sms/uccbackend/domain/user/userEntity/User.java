@@ -1,0 +1,51 @@
+package sms.uccbackend.domain.user.userEntity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "users")
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String firebaseUid;
+
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private String authProvider = "GOOGLE";
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String nickname;
+
+    private String profileImage;
+
+    private Long schoolId;
+
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private UserRole role = UserRole.MEMBER;
+
+    public void updateProfile(String nickname, String profileImage, String bio) {
+        if (nickname != null) this.nickname = nickname;
+        if (profileImage != null) this.profileImage = profileImage;
+        if (bio != null) this.bio = bio;
+    }
+
+}
