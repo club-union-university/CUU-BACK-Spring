@@ -166,4 +166,23 @@ public class ClubService {
                 .map(ClubResponse::from)
                 .collect(Collectors.toList());
     }
+
+    // 연합 행사용 파트너 후보 조회 (본인 동아리 제외, 모두 APPROVED)
+    public List<ClubResponse> getPartnerOptions(Long userId, Long hostClubId) {
+        Club hostClub = clubRepository.findById(hostClubId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 동아리입니다."));
+
+        if (hostClub.getStatus() != ClubStatus.APPROVED) {
+            throw new IllegalArgumentException("승인된 동아리만 파트너 후보를 조회할 수 있습니다.");
+        }
+
+        if (!hostClub.getPresidentUserId().equals(userId)) {
+            throw new IllegalArgumentException("주최 동아리 회장만 파트너 후보를 조회할 수 있습니다.");
+        }
+
+        return clubRepository.findByStatusAndIdNot(ClubStatus.APPROVED, hostClubId)
+                .stream()
+                .map(ClubResponse::from)
+                .collect(Collectors.toList());
+    }
 }

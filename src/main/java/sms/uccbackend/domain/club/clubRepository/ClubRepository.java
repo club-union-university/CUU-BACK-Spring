@@ -23,6 +23,8 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
 
     List<Club> findBySchoolId(Long schoolId);
 
+    List<Club> findByStatusAndIdNot(ClubStatus status, Long id);
+
     @Query("SELECT c FROM Club c WHERE " +
             "(:schoolId IS NULL OR c.schoolId = :schoolId) AND " +
             "(:category IS NULL OR c.category = :category) AND " +

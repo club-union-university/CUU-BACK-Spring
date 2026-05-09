@@ -38,6 +38,15 @@ public class ClubController {
         return ResponseEntity.ok(clubService.getClubs(userId, schoolId, category, status));
     }
 
+    // GET /clubs/partner-options?hostClubId= - 연합 행사 파트너 후보 (본인 동아리 제외, APPROVED만)
+    @GetMapping("/partner-options")
+    public ResponseEntity<List<ClubResponse>> getPartnerOptions(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam Long hostClubId
+    ) {
+        return ResponseEntity.ok(clubService.getPartnerOptions(userId, hostClubId));
+    }
+
     // GET /clubs/{clubId} - 동아리 조회
     @GetMapping("/{clubId}")
     public ResponseEntity<ClubResponse> getClub(@PathVariable Long clubId) {
