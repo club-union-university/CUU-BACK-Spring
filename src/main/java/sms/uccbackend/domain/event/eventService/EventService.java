@@ -3,6 +3,8 @@ package sms.uccbackend.domain.event.eventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sms.uccbackend.domain.club.clubEntity.Club;
+import sms.uccbackend.domain.club.clubRepository.ClubRepository;
 import sms.uccbackend.domain.event.eventDto.*;
 import sms.uccbackend.domain.event.eventEntity.Event;
 import sms.uccbackend.domain.event.eventEntity.EventCategory;
@@ -12,9 +14,16 @@ import sms.uccbackend.domain.event.eventEntity.EventType;
 import sms.uccbackend.domain.event.eventEntity.ParticipantStatus;
 import sms.uccbackend.domain.event.eventRepository.EventParticipantRepository;
 import sms.uccbackend.domain.event.eventRepository.EventRepository;
+import sms.uccbackend.domain.school.schoolEntity.School;
+import sms.uccbackend.domain.school.schoolEntity.SchoolFacility;
+import sms.uccbackend.domain.school.schoolRepository.SchoolFacilityRepository;
+import sms.uccbackend.domain.school.schoolRepository.SchoolRepository;
+import sms.uccbackend.global.ai.AiClient;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +32,10 @@ import java.util.stream.Collectors;
 public class EventService {
     private final EventRepository eventRepository;
     private final EventParticipantRepository eventParticipantRepository;
+    private final ClubRepository clubRepository;
+    private final SchoolRepository schoolRepository;
+    private final SchoolFacilityRepository schoolFacilityRepository;
+    private final AiClient aiClient;
 
     // 행사 생성
     @Transactional
@@ -207,5 +220,94 @@ public class EventService {
         participant.setRespondedAt(LocalDateTime.now());
 
         return EventParticipantResponse.from(participant);
+    }
+
+    // AI Step 1: 자연어 입력 → 제목/카테고리/설명 보강
+    @Transactional
+    public Map<String, Object> runAiStep1(Long eventId, EventAiStep1Request request) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("rawInput", request.getRawInput());
+        payload.put("event", eventSummary(event));
+
+        Map<String, Object> result = aiClient.step1(payload);
+        event.setStep1Data(result);
+        return result;
+    }
+
+    // AI Step 2: 장소/공지글/모집정보 보강
+    @Transactional
+    public Map<String, Object> runAiStep2(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
+
+        if (event.getStep1Data() == null) {
+            throw new IllegalArgumentException("Step 1을 먼저 실행해야 합니다.");
+        }
+
+        Club hostClub = clubRepository.findById(event.getHostClubId())
+                .orElseThrow(() -> new IllegalArgumentException("주최 동아리를 찾을 수 없습니다."));
+        School hostSchool = schoolRepository.findById(hostClub.getSchoolId())
+                .orElseThrow(() -> new IllegalArgumentException("주최 학교를 찾을 수 없습니다."));
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("step1Data", event.getStep1Data());
+        payload.put("event", eventSummary(event));
+        payload.put("hostSchool", schoolSummary(hostSchool));
+
+        if (event.getType() == EventType.INTER_CLUB && event.getPartnerClubId() != null) {
+            Club partnerClub = clubRepository.findById(event.getPartnerClubId())
+                    .orElseThrow(() -> new IllegalArgumentException("파트너 동아리를 찾을 수 없습니다."));
+            School partnerSchool = schoolRepository.findById(partnerClub.getSchoolId())
+                    .orElseThrow(() -> new IllegalArgumentException("파트너 학교를 찾을 수 없습니다."));
+            payload.put("partnerSchool", schoolSummary(partnerSchool));
+        } else {
+            List<SchoolFacility> facilities = schoolFacilityRepository.findBySchoolId(hostSchool.getId());
+            payload.put("facilities", facilities.stream().map(this::facilitySummary).toList());
+        }
+
+        Map<String, Object> result = aiClient.step2(payload);
+        event.setStep2Data(result);
+        return result;
+    }
+
+    private Map<String, Object> eventSummary(Event event) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", event.getId());
+        m.put("type", event.getType());
+        m.put("hostClubId", event.getHostClubId());
+        m.put("partnerClubId", event.getPartnerClubId());
+        m.put("title", event.getTitle());
+        m.put("category", event.getCategory());
+        m.put("description", event.getDescription());
+        m.put("format", event.getFormat());
+        m.put("startAt", event.getStartAt());
+        m.put("endAt", event.getEndAt());
+        m.put("recruitDeadline", event.getRecruitDeadline());
+        m.put("maxParticipants", event.getMaxParticipants());
+        return m;
+    }
+
+    private Map<String, Object> schoolSummary(School school) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", school.getId());
+        m.put("name", school.getName());
+        m.put("region", school.getRegion());
+        m.put("lat", school.getLat());
+        m.put("lng", school.getLng());
+        return m;
+    }
+
+    private Map<String, Object> facilitySummary(SchoolFacility facility) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", facility.getId());
+        m.put("name", facility.getName());
+        m.put("facilityType", facility.getFacilityType());
+        m.put("capacity", facility.getCapacity());
+        m.put("lat", facility.getLat());
+        m.put("lng", facility.getLng());
+        return m;
     }
 }

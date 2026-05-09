@@ -23,11 +23,11 @@ public class PostService {
 
     // 게시글 작성
     @Transactional
-    public PostResponse createPost(Long userId, Long eventId, PostCreateRequest request) {
+    public PostResponse createPost(Long userId, BoardType boardType, Long targetId, PostCreateRequest request) {
         Post post = Post.builder()
                 .authorId(userId)
-                .boardType(BoardType.EVENT)
-                .targetId(eventId)
+                .boardType(boardType)
+                .targetId(targetId)
                 .category(request.getCategory())
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -39,14 +39,14 @@ public class PostService {
     }
 
     // 게시글 목록 조회
-    public List<PostResponse> getPosts(Long eventId, PostCategory category) {
+    public List<PostResponse> getPosts(BoardType boardType, Long targetId, PostCategory category) {
         List<Post> posts;
         if (category != null) {
             posts = postRepository.findByBoardTypeAndTargetIdAndCategoryOrderByCreatedAtDesc(
-                    BoardType.EVENT, eventId, category);
+                    boardType, targetId, category);
         } else {
             posts = postRepository.findByBoardTypeAndTargetIdOrderByCreatedAtDesc(
-                    BoardType.EVENT, eventId);
+                    boardType, targetId);
         }
         return posts.stream().map(PostResponse::from).collect(Collectors.toList());
     }

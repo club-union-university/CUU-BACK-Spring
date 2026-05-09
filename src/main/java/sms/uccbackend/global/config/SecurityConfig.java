@@ -4,6 +4,7 @@ package sms.uccbackend.global.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -49,7 +50,7 @@ public class SecurityConfig {
                         // 인증 없이 허용
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/signup").permitAll()
-                        .requestMatchers("/api/schools/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/schools/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()

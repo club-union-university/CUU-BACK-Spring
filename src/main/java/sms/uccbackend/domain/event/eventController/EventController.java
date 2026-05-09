@@ -12,6 +12,7 @@ import sms.uccbackend.domain.event.eventEntity.EventType;
 import sms.uccbackend.domain.event.eventService.EventService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/events")
@@ -114,5 +115,20 @@ public class EventController {
             @RequestBody ParticipantRespondRequest request
     ) {
         return ResponseEntity.ok(eventService.respondParticipant(eventId, targetUserId, request));
+    }
+
+    // POST /events/{eventId}/ai/step1 - Gemini Step 1 정제 (제목/카테고리/설명)
+    @PostMapping("/{eventId}/ai/step1")
+    public ResponseEntity<Map<String, Object>> runAiStep1(
+            @PathVariable Long eventId,
+            @RequestBody EventAiStep1Request request
+    ) {
+        return ResponseEntity.ok(eventService.runAiStep1(eventId, request));
+    }
+
+    // POST /events/{eventId}/ai/step2 - Gemini Step 2 정제 (장소/공지글/모집정보)
+    @PostMapping("/{eventId}/ai/step2")
+    public ResponseEntity<Map<String, Object>> runAiStep2(@PathVariable Long eventId) {
+        return ResponseEntity.ok(eventService.runAiStep2(eventId));
     }
 }

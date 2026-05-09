@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sms.uccbackend.domain.post.postDto.*;
+import sms.uccbackend.domain.post.postEntity.BoardType;
 import sms.uccbackend.domain.post.postEntity.PostCategory;
 import sms.uccbackend.domain.post.postService.PostService;
 
@@ -17,24 +18,64 @@ public class PostController {
 
     private final PostService postService;
 
-    // POST /events/{eventId}/posts - 게시글 작성
+    // POST /events/{eventId}/posts - 행사 게시판: 게시글 작성
     @PostMapping("/api/events/{eventId}/posts")
-    public ResponseEntity<PostResponse> createPost(
+    public ResponseEntity<PostResponse> createEventPost(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long eventId,
             @RequestBody PostCreateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(postService.createPost(userId, eventId, request));
+                .body(postService.createPost(userId, BoardType.EVENT, eventId, request));
     }
 
-    // GET /events/{eventId}/posts - 게시글 목록
+    // GET /events/{eventId}/posts - 행사 게시판: 게시글 목록
     @GetMapping("/api/events/{eventId}/posts")
-    public ResponseEntity<List<PostResponse>> getPosts(
+    public ResponseEntity<List<PostResponse>> getEventPosts(
             @PathVariable Long eventId,
             @RequestParam(required = false) PostCategory category
     ) {
-        return ResponseEntity.ok(postService.getPosts(eventId, category));
+        return ResponseEntity.ok(postService.getPosts(BoardType.EVENT, eventId, category));
+    }
+
+    // POST /schools/{schoolId}/posts - 학교 게시판: 게시글 작성
+    @PostMapping("/api/schools/{schoolId}/posts")
+    public ResponseEntity<PostResponse> createSchoolPost(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long schoolId,
+            @RequestBody PostCreateRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(postService.createPost(userId, BoardType.SCHOOL, schoolId, request));
+    }
+
+    // GET /schools/{schoolId}/posts - 학교 게시판: 게시글 목록
+    @GetMapping("/api/schools/{schoolId}/posts")
+    public ResponseEntity<List<PostResponse>> getSchoolPosts(
+            @PathVariable Long schoolId,
+            @RequestParam(required = false) PostCategory category
+    ) {
+        return ResponseEntity.ok(postService.getPosts(BoardType.SCHOOL, schoolId, category));
+    }
+
+    // POST /clubs/{clubId}/posts - 동아리 게시판: 게시글 작성
+    @PostMapping("/api/clubs/{clubId}/posts")
+    public ResponseEntity<PostResponse> createClubPost(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long clubId,
+            @RequestBody PostCreateRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(postService.createPost(userId, BoardType.CLUB, clubId, request));
+    }
+
+    // GET /clubs/{clubId}/posts - 동아리 게시판: 게시글 목록
+    @GetMapping("/api/clubs/{clubId}/posts")
+    public ResponseEntity<List<PostResponse>> getClubPosts(
+            @PathVariable Long clubId,
+            @RequestParam(required = false) PostCategory category
+    ) {
+        return ResponseEntity.ok(postService.getPosts(BoardType.CLUB, clubId, category));
     }
 
     // GET /posts/{postId} - 게시글 단건 조회
