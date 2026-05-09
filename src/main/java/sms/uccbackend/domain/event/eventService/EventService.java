@@ -3,8 +3,6 @@ package sms.uccbackend.domain.event.eventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sms.uccbackend.domain.club.clubEntity.Club;
-import sms.uccbackend.domain.club.clubRepository.ClubRepository;
 import sms.uccbackend.domain.event.eventDto.*;
 import sms.uccbackend.domain.event.eventEntity.Event;
 import sms.uccbackend.domain.event.eventEntity.EventCategory;
@@ -14,15 +12,9 @@ import sms.uccbackend.domain.event.eventEntity.EventType;
 import sms.uccbackend.domain.event.eventEntity.ParticipantStatus;
 import sms.uccbackend.domain.event.eventRepository.EventParticipantRepository;
 import sms.uccbackend.domain.event.eventRepository.EventRepository;
-import sms.uccbackend.domain.school.schoolEntity.School;
-import sms.uccbackend.domain.school.schoolEntity.SchoolFacility;
-import sms.uccbackend.domain.school.schoolRepository.SchoolFacilityRepository;
-import sms.uccbackend.domain.school.schoolRepository.SchoolRepository;
 import sms.uccbackend.global.ai.AiClient;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,9 +25,6 @@ import java.util.stream.Collectors;
 public class EventService {
     private final EventRepository eventRepository;
     private final EventParticipantRepository eventParticipantRepository;
-    private final ClubRepository clubRepository;
-    private final SchoolRepository schoolRepository;
-    private final SchoolFacilityRepository schoolFacilityRepository;
     private final AiClient aiClient;
 
     // 행사 생성
@@ -223,114 +212,25 @@ public class EventService {
         return EventParticipantResponse.from(participant);
     }
 
-    // AI Step 1: 자연어 입력 → 제목/카테고리/설명 보강 (Nest whitelist 키만 전송)
+    // AI Step 1: FE body를 Nest로 그대로 forwarding, 응답을 step1Data에 캐시
     @Transactional
-    public Map<String, Object> runAiStep1(Long eventId, EventAiStep1Request request) {
+    public Map<String, Object> runAiStep1(Long eventId, Map<String, Object> body) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
 
-        Club hostClub = clubRepository.findById(event.getHostClubId())
-                .orElseThrow(() -> new IllegalArgumentException("주최 동아리를 찾을 수 없습니다."));
-
-        Map<String, Object> payload = new LinkedHashMap<>();
-        if (request.getNaturalText() != null) payload.put("naturalText", request.getNaturalText());
-        if (event.getType() != null) payload.put("eventType", event.getType().name());
-        if (hostClub.getName() != null) payload.put("hostClubName", hostClub.getName());
-
-        if (event.getType() == EventType.INTER_CLUB && event.getPartnerClubId() != null) {
-            clubRepository.findById(event.getPartnerClubId())
-                    .ifPresent(partner -> payload.put("partnerClubName", partner.getName()));
-        }
-
-        if (request.getPreferredArea() != null) payload.put("preferredArea", request.getPreferredArea());
-
-        Map<String, Object> result = aiClient.step1(eventId, payload);
+        Map<String, Object> result = aiClient.step1(eventId, body);
         event.setStep1Data(result);
         return result;
     }
 
-    // AI Step 2: 장소/공지글/모집정보 보강 (Nest whitelist 키만 전송)
+    // AI Step 2: FE body를 Nest로 그대로 forwarding, 응답을 step2Data에 캐시
     @Transactional
-    public Map<String, Object> runAiStep2(Long eventId, EventAiStep2Request request) {
+    public Map<String, Object> runAiStep2(Long eventId, Map<String, Object> body) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
 
-        if (event.getStep1Data() == null) {
-            throw new IllegalArgumentException("Step 1을 먼저 실행해야 합니다.");
-        }
-
-        Club hostClub = clubRepository.findById(event.getHostClubId())
-                .orElseThrow(() -> new IllegalArgumentException("주최 동아리를 찾을 수 없습니다."));
-        School hostSchool = schoolRepository.findById(hostClub.getSchoolId())
-                .orElseThrow(() -> new IllegalArgumentException("주최 학교를 찾을 수 없습니다."));
-
-        List<Map<String, Object>> schools = new ArrayList<>();
-        schools.add(schoolForNest(hostSchool));
-
-        if (event.getType() == EventType.INTER_CLUB && event.getPartnerClubId() != null) {
-            Club partnerClub = clubRepository.findById(event.getPartnerClubId())
-                    .orElseThrow(() -> new IllegalArgumentException("파트너 동아리를 찾을 수 없습니다."));
-            School partnerSchool = schoolRepository.findById(partnerClub.getSchoolId())
-                    .orElseThrow(() -> new IllegalArgumentException("파트너 학교를 찾을 수 없습니다."));
-            schools.add(schoolForNest(partnerSchool));
-        }
-
-        List<Map<String, Object>> facilities = schoolFacilityRepository.findBySchoolId(hostSchool.getId())
-                .stream()
-                .map(this::facilityForNest)
-                .toList();
-
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("step1Result", event.getStep1Data());
-        payload.put("schools", schools);
-        payload.put("facilities", facilities);
-        if (request != null && request.getPreferredArea() != null) {
-            payload.put("preferredArea", request.getPreferredArea());
-        }
-
-        Map<String, Object> result = aiClient.step2(eventId, payload);
-
-        // FE는 result.locationName / result.locationAddress 를 직접 꺼내 PATCH 하므로
-        // recommendedPlaces 톱 1개를 톱레벨로 평탄화한다.
-        result = flattenTopPlace(result);
-
+        Map<String, Object> result = aiClient.step2(eventId, body);
         event.setStep2Data(result);
         return result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> flattenTopPlace(Map<String, Object> nestResult) {
-        if (nestResult == null) return nestResult;
-        Object placesRaw = nestResult.get("recommendedPlaces");
-        if (!(placesRaw instanceof List<?> placesList) || placesList.isEmpty()) {
-            return nestResult;
-        }
-        Object firstRaw = placesList.get(0);
-        if (!(firstRaw instanceof Map<?, ?> firstMap)) {
-            return nestResult;
-        }
-
-        Map<String, Object> top = (Map<String, Object>) firstMap;
-        Map<String, Object> flat = new LinkedHashMap<>(nestResult);
-        flat.put("locationName", top.get("name"));
-        // Nest 현재 스펙은 address를 주지 않음 — 추후 Maps 연동 시 채움
-        flat.put("locationAddress", top.getOrDefault("address", null));
-        return flat;
-    }
-
-    private Map<String, Object> schoolForNest(School school) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("name", school.getName());
-        m.put("lat", school.getLat());
-        m.put("lng", school.getLng());
-        return m;
-    }
-
-    private Map<String, Object> facilityForNest(SchoolFacility facility) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("name", facility.getName());
-        m.put("type", facility.getFacilityType() != null ? facility.getFacilityType().name() : null);
-        m.put("capacity", facility.getCapacity());
-        return m;
     }
 }

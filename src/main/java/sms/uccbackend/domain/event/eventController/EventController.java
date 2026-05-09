@@ -117,21 +117,21 @@ public class EventController {
         return ResponseEntity.ok(eventService.respondParticipant(eventId, targetUserId, request));
     }
 
-    // POST /events/{eventId}/ai/step1 - Gemini Step 1 정제 (제목/카테고리/설명)
+    // POST /events/{eventId}/ai/step1 - FE body를 Nest에 그대로 forwarding
     @PostMapping("/{eventId}/ai/step1")
     public ResponseEntity<Map<String, Object>> runAiStep1(
             @PathVariable Long eventId,
-            @RequestBody EventAiStep1Request request
+            @RequestBody(required = false) Map<String, Object> body
     ) {
-        return ResponseEntity.ok(eventService.runAiStep1(eventId, request));
+        return ResponseEntity.ok(eventService.runAiStep1(eventId, body));
     }
 
-    // POST /events/{eventId}/ai/step2 - Gemini Step 2 정제 (장소/공지글/모집정보)
+    // POST /events/{eventId}/ai/step2 - FE body를 Nest에 그대로 forwarding
     @PostMapping("/{eventId}/ai/step2")
     public ResponseEntity<Map<String, Object>> runAiStep2(
             @PathVariable Long eventId,
-            @RequestBody(required = false) EventAiStep2Request request
+            @RequestBody(required = false) Map<String, Object> body
     ) {
-        return ResponseEntity.ok(eventService.runAiStep2(eventId, request));
+        return ResponseEntity.ok(eventService.runAiStep2(eventId, body));
     }
 }
