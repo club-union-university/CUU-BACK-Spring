@@ -1,0 +1,4 @@
+# Railway / Nixpacks: pin JDK so Gradle toolchain resolution matches CI.
+# https://nixpacks.com/docs/providers/java
+[variables]
+NIXPACKS_JDK_VERSION = "17"
