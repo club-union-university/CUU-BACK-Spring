@@ -53,11 +53,4 @@ public class User {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public void updateProfile(String nickname, String profileImage, String bio) {
-        if (nickname != null) this.nickname = nickname;
-        if (profileImage != null) this.profileImage = profileImage;
-        if (bio != null) this.bio = bio;
-    }
-
 }

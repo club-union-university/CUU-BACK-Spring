@@ -1,5 +1,4 @@
-package sms.uccbackend.domain.club.clubEntity;
-
+package sms.uccbackend.domain.event.eventEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -9,21 +8,21 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-        name = "club_members",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"club_id", "user_id"})
+        name = "event_participants",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"event_id", "user_id"})
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class ClubMember {
+public class EventParticipant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Long clubId;
+    private Long eventId;
 
     @Column(nullable = false)
     private Long userId;
@@ -31,14 +30,11 @@ public class ClubMember {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private ClubMemberRole memberRole = ClubMemberRole.MEMBER;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private ClubMemberStatus status = ClubMemberStatus.APPROVED;
+    private ParticipantStatus status = ParticipantStatus.PENDING;
 
     @CreatedDate
     @Column(updatable = false)
-    private LocalDateTime joinedAt;
+    private LocalDateTime appliedAt;
+
+    private LocalDateTime respondedAt;
 }

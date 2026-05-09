@@ -58,22 +58,4 @@ public class Club {
     @Column(columnDefinition = "TEXT")
     private String rejectReason;
 
-    public void approve(Long adminUserId) {
-        this.status = ClubStatus.APPROVED;
-        this.approvedByUserId = adminUserId;
-        this.approvedAt = LocalDateTime.now();
-        this.rejectReason = null;
-    }
-
-    public void reject(String reason) {
-        this.status = ClubStatus.REJECTED;
-        this.rejectReason = reason;
-    }
-
-    public void update(String description, String logoImage, String evidenceUrl, ClubCategory category) {
-        if (description != null) this.description = description;
-        if (logoImage != null) this.logoImage = logoImage;
-        if (evidenceUrl != null) this.evidenceUrl = evidenceUrl;
-        if (category != null) this.category = category;
-    }
 }
