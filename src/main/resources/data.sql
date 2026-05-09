@@ -23,14 +23,14 @@ VALUES
 -- =============================================
 -- Users
 -- =============================================
-INSERT INTO users (firebase_uid, auth_provider, email, nickname, profile_image, school_id, personal_role, bio, role, created_at, updated_at)
+INSERT INTO users (firebase_uid, auth_provider, email, nickname, profile_image, school_id, bio, role, created_at, updated_at)
 VALUES
-    ('firebase-uid-001', 'GOOGLE', 'admin@inha.ac.kr', '슈퍼관리자', 'https://via.placeholder.com/150', 1, 'BACKEND', '시스템 관리자입니다.', 'SUPER_ADMIN', NOW(), NOW()),
-    ('firebase-uid-002', 'GOOGLE', 'alice@inha.ac.kr', '김앨리스', 'https://via.placeholder.com/150', 1, 'FRONTEND', '프론트엔드 개발자입니다.', 'MEMBER', NOW(), NOW()),
-    ('firebase-uid-003', 'GOOGLE', 'bob@inha.ac.kr', '이밥', 'https://via.placeholder.com/150', 1, 'BACKEND', '백엔드 개발자입니다.', 'MEMBER', NOW(), NOW()),
-    ('firebase-uid-004', 'GOOGLE', 'carol@inu.ac.kr', '박캐롤', 'https://via.placeholder.com/150', 2, 'DESIGNER', 'UI/UX 디자이너입니다.', 'MEMBER', NOW(), NOW()),
-    ('firebase-uid-005', 'GOOGLE', 'dave@inu.ac.kr', '최데이브', 'https://via.placeholder.com/150', 2, 'PLANNER', 'PM입니다.', 'MEMBER', NOW(), NOW()),
-    ('firebase-uid-006', 'GOOGLE', 'eve@kau.ac.kr', '정이브', 'https://via.placeholder.com/150', 4, 'IOS', 'iOS 개발자입니다.', 'MEMBER', NOW(), NOW());
+    ('firebase-uid-001', 'GOOGLE', 'admin@inha.ac.kr', '슈퍼관리자', 'https://via.placeholder.com/150', 1, '시스템 관리자입니다.', 'SUPER_ADMIN', NOW(), NOW()),
+    ('firebase-uid-002', 'GOOGLE', 'alice@inha.ac.kr', '김앨리스', 'https://via.placeholder.com/150', 1, '프론트엔드 개발자입니다.', 'PRESIDENT', NOW(), NOW()),
+    ('firebase-uid-003', 'GOOGLE', 'bob@inha.ac.kr', '이밥', 'https://via.placeholder.com/150', 1, '백엔드 개발자입니다.', 'PRESIDENT', NOW(), NOW()),
+    ('firebase-uid-004', 'GOOGLE', 'carol@inu.ac.kr', '박캐롤', 'https://via.placeholder.com/150', 2, 'UI/UX 디자이너입니다.', 'PRESIDENT', NOW(), NOW()),
+    ('firebase-uid-005', 'GOOGLE', 'dave@inu.ac.kr', '최데이브', 'https://via.placeholder.com/150', 2, 'PM입니다.', 'PRESIDENT', NOW(), NOW()),
+    ('firebase-uid-006', 'GOOGLE', 'eve@kau.ac.kr', '정이브', 'https://via.placeholder.com/150', 4, 'iOS 개발자입니다.', 'PRESIDENT', NOW(), NOW());
 
 -- =============================================
 -- Clubs
@@ -66,45 +66,41 @@ INSERT INTO events (type, host_club_id, partner_club_id, title, category, descri
                     status, host_approved, partner_approved, proposal_message,
                     created_by_user_id, created_at, updated_at)
 VALUES
--- 교내 행사
-('INTRA_CLUB', 1, null, '2025 INHA 해커톤', 'HACKATHON',
- '인하대 개발 동아리 해커톤입니다. 48시간 동안 아이디어를 구현해요!', '오프라인',
- '60주년기념관 대강당', '인천광역시 미추홀구 인하로 100', 37.4501, 126.6551,
- '2025-06-15 09:00:00', '2025-06-17 09:00:00', '2025-06-01 23:59:59', 50,
- 'RECRUITING', true, false, null, 2, NOW(), NOW()),
+    ('INTRA_CLUB', 1, null, '2025 INHA 해커톤', 'HACKATHON',
+     '인하대 개발 동아리 해커톤입니다. 48시간 동안 아이디어를 구현해요!', '오프라인',
+     '60주년기념관 대강당', '인천광역시 미추홀구 인하로 100', 37.4501, 126.6551,
+     '2025-06-15 09:00:00', '2025-06-17 09:00:00', '2025-06-01 23:59:59', 50,
+     'RECRUITING', true, false, null, 2, NOW(), NOW()),
 
--- 연합 행사
-('INTER_CLUB', 1, 3, '인하-인천대 연합 밋업', 'MEETUP',
- '인하대와 인천대 개발 동아리 연합 네트워킹 행사입니다.', '오프라인',
- '인천대학교 송도캠퍼스 대강당', '인천광역시 연수구 아카데미로 119', 37.3748, 126.6330,
- '2025-07-05 14:00:00', '2025-07-05 18:00:00', '2025-06-25 23:59:59', 80,
- 'APPROVED', true, true, '함께 네트워킹 행사를 진행하고 싶습니다!', 2, NOW(), NOW()),
+    ('INTER_CLUB', 1, 3, '인하-인천대 연합 밋업', 'MEETUP',
+     '인하대와 인천대 개발 동아리 연합 네트워킹 행사입니다.', '오프라인',
+     '인천대학교 송도캠퍼스 대강당', '인천광역시 연수구 아카데미로 119', 37.3748, 126.6330,
+     '2025-07-05 14:00:00', '2025-07-05 18:00:00', '2025-06-25 23:59:59', 80,
+     'APPROVED', true, true, '함께 네트워킹 행사를 진행하고 싶습니다!', 2, NOW(), NOW()),
 
--- 스터디 행사
-('INTRA_CLUB', 2, null, '인하 디자인 스터디', 'STUDY',
- 'Figma와 UI/UX 디자인 스터디입니다.', '온라인',
- null, null, null, null,
- '2025-06-20 19:00:00', '2025-06-20 21:00:00', '2025-06-15 23:59:59', 20,
- 'RECRUITING', true, false, null, 3, NOW(), NOW()),
+    ('INTRA_CLUB', 2, null, '인하 디자인 스터디', 'STUDY',
+     'Figma와 UI/UX 디자인 스터디입니다.', '온라인',
+     null, null, null, null,
+     '2025-06-20 19:00:00', '2025-06-20 21:00:00', '2025-06-15 23:59:59', 20,
+     'RECRUITING', true, false, null, 3, NOW(), NOW()),
 
--- DRAFT 상태 행사
-('INTRA_CLUB', 5, null, 'KAU 항공 해커톤 2025', 'HACKATHON',
- '항공 관련 아이디어로 해커톤을 진행합니다.', '오프라인',
- null, null, null, null,
- '2025-08-01 09:00:00', '2025-08-03 09:00:00', '2025-07-20 23:59:59', 30,
- 'DRAFT', false, false, null, 6, NOW(), NOW());
+    ('INTRA_CLUB', 5, null, 'KAU 항공 해커톤 2025', 'HACKATHON',
+     '항공 관련 아이디어로 해커톤을 진행합니다.', '오프라인',
+     null, null, null, null,
+     '2025-08-01 09:00:00', '2025-08-03 09:00:00', '2025-07-20 23:59:59', 30,
+     'DRAFT', false, false, null, 6, NOW(), NOW());
 
 -- =============================================
 -- Event Participants
 -- =============================================
-INSERT INTO event_participants (event_id, user_id, participating_role, status, applied_at, responded_at)
+INSERT INTO event_participants (event_id, user_id, status, applied_at, responded_at)
 VALUES
-    (1, 3, 'BACKEND', 'APPROVED', NOW(), NOW()),
-    (1, 4, 'DESIGNER', 'APPROVED', NOW(), NOW()),
-    (1, 5, 'PLANNER', 'PENDING', NOW(), null),
-    (2, 4, 'DESIGNER', 'APPROVED', NOW(), NOW()),
-    (2, 5, 'PLANNER', 'APPROVED', NOW(), NOW()),
-    (3, 2, 'FRONTEND', 'APPROVED', NOW(), NOW());
+    (1, 3, 'APPROVED', NOW(), NOW()),
+    (1, 4, 'APPROVED', NOW(), NOW()),
+    (1, 5, 'PENDING', NOW(), null),
+    (2, 4, 'APPROVED', NOW(), NOW()),
+    (2, 5, 'APPROVED', NOW(), NOW()),
+    (3, 2, 'APPROVED', NOW(), NOW());
 
 -- =============================================
 -- Posts
@@ -140,11 +136,11 @@ VALUES
 -- =============================================
 INSERT INTO comments (post_id, author_id, content, created_at)
 VALUES
-    (1, 3, '참가 신청 완료했습니다! 기대됩니다 😊', NOW()),
+    (1, 3, '참가 신청 완료했습니다! 기대됩니다', NOW()),
     (1, 4, '저도 신청했어요! 잘 부탁드립니다~', NOW()),
     (2, 4, '저 관심 있어요! 사용 기술 스택이 어떻게 되나요?', NOW()),
     (2, 2, 'Spring Boot + JPA 사용할 예정이에요!', NOW()),
-    (3, 2, '노트북 지참해주셔야 합니다! 전원 멀티탭은 준비되어 있어요 :)', NOW()),
+    (3, 2, '노트북 지참해주셔야 합니다! 전원 멀티탭은 준비되어 있어요', NOW()),
     (4, 5, '기대됩니다! 잘 부탁드려요~', NOW()),
     (5, 2, '좋은 일정이네요! 미니 해커톤 주제가 뭔가요?', NOW()),
-    (5, 4, '아직 미정이에요! 당일 발표 예정입니다 :)', NOW());
+    (5, 4, '아직 미정이에요! 당일 발표 예정입니다', NOW());

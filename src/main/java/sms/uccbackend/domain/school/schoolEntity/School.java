@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "shcools")
+@Table(name = "schools")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
