@@ -10,7 +10,7 @@ description = 'ucc-backend'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(22)
     }
 }
 
