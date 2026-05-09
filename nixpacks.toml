@@ -1,4 +1,10 @@
 # Railway / Nixpacks: pin JDK so Gradle toolchain resolution matches CI.
 # https://nixpacks.com/docs/providers/java
+#
+# Default Nixpacks Spring+Gradle start puts -Dserver.port after -jar (invalid)
+# and breaks when ls finds no jar. Use an explicit start command.
 [variables]
 NIXPACKS_JDK_VERSION = "17"
+
+[start]
+cmd = "bash scripts/railway-start.sh"
