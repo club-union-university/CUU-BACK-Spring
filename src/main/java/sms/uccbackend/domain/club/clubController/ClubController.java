@@ -5,6 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sms.uccbackend.domain.club.clubDto.*;
+import sms.uccbackend.domain.club.clubEntity.ClubCategory;
+import sms.uccbackend.domain.club.clubEntity.ClubStatus;
 import sms.uccbackend.domain.club.clubService.ClubService;
 
 import java.util.List;
@@ -23,6 +25,15 @@ public class ClubController {
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(clubService.createClub(userId, request));
+    }
+    // GET /clubs - 동아리 목록
+    @GetMapping
+    public ResponseEntity<List<ClubResponse>> getClubs(
+            @RequestParam(required = false) Long schoolId,
+            @RequestParam(required = false) ClubCategory category,
+            @RequestParam(required = false) ClubStatus status
+    ) {
+        return ResponseEntity.ok(clubService.getClubs(schoolId, category, status));
     }
 
     // GET /clubs/{clubId} - 동아리 조회

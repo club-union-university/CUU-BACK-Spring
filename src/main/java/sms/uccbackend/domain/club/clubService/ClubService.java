@@ -159,4 +159,11 @@ public class ClubService {
 
         member.setStatus(ClubMemberStatus.LEFT);
     }
+
+    public List<ClubResponse> getClubs(Long schoolId, ClubCategory category, ClubStatus status) {
+        return clubRepository.findByFilters(schoolId, category, status)
+                .stream()
+                .map(ClubResponse::from)
+                .collect(Collectors.toList());
+    }
 }

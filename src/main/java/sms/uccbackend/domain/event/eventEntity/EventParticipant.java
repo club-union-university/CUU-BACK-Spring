@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
         uniqueConstraints = @UniqueConstraint(columnNames = {"event_id", "user_id"})
 )
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor
@@ -37,4 +38,6 @@ public class EventParticipant {
     private LocalDateTime appliedAt;
 
     private LocalDateTime respondedAt;
+
+
 }

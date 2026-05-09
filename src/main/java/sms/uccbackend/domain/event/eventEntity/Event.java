@@ -14,6 +14,7 @@ import java.util.Map;
 @Entity
 @Table(name = "events")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor
