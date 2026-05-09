@@ -2,6 +2,7 @@ package sms.uccbackend.domain.user.userController;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sms.uccbackend.domain.user.userDto.UserResponse;
 import sms.uccbackend.domain.user.userDto.UserUpdateRequest;
@@ -22,8 +23,7 @@ public class UserController {
     // PATCH /users/me - 내 프로필 수정
     @PatchMapping("/me")
     public ResponseEntity<UserResponse> updateMe(
-//            @AuthenticationPrincipal Long userId,
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestBody UserUpdateRequest request
     ) {
         return ResponseEntity.ok(userService.updateMe(userId, request));

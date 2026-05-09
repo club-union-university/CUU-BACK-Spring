@@ -7,7 +7,8 @@ VALUES
     ('인천대학교', 'inu.ac.kr', 'GYEONGIN', 'MAIN', 37.3745, 126.6327, true, NOW()),
     ('경인교육대학교', 'ginue.ac.kr', 'GYEONGIN', 'MAIN', 37.4781, 126.6455, true, NOW()),
     ('한국항공대학교', 'kau.ac.kr', 'GYEONGIN', 'MAIN', 37.6000, 126.8641, true, NOW()),
-    ('서울대학교', 'snu.ac.kr', 'SEOUL', 'MAIN', 37.4597, 126.9523, false, NOW());
+    ('서울대학교', 'snu.ac.kr', 'SEOUL', 'MAIN', 37.4597, 126.9523, false, NOW()),
+    ('아주대학교', 'ajou.ac.kr', 'GYEONGIN', 'MAIN', 37.2832, 127.0454, true, NOW());
 
 -- =============================================
 -- School Facilities
@@ -30,7 +31,8 @@ VALUES
     ('firebase-uid-003', 'GOOGLE', 'bob@inha.ac.kr', '이밥', 'https://via.placeholder.com/150', 1, '백엔드 개발자입니다.', 'PRESIDENT', NOW(), NOW()),
     ('firebase-uid-004', 'GOOGLE', 'carol@inu.ac.kr', '박캐롤', 'https://via.placeholder.com/150', 2, 'UI/UX 디자이너입니다.', 'PRESIDENT', NOW(), NOW()),
     ('firebase-uid-005', 'GOOGLE', 'dave@inu.ac.kr', '최데이브', 'https://via.placeholder.com/150', 2, 'PM입니다.', 'PRESIDENT', NOW(), NOW()),
-    ('firebase-uid-006', 'GOOGLE', 'eve@kau.ac.kr', '정이브', 'https://via.placeholder.com/150', 4, 'iOS 개발자입니다.', 'PRESIDENT', NOW(), NOW());
+    ('firebase-uid-006', 'GOOGLE', 'eve@kau.ac.kr', '정이브', 'https://via.placeholder.com/150', 4, 'iOS 개발자입니다.', 'PRESIDENT', NOW(), NOW()),
+    ('firebase-uid-007', 'GOOGLE', 'frank@ajou.ac.kr', '한프랭크', 'https://via.placeholder.com/150', 6, '아주대 풀스택 개발자입니다.', 'PRESIDENT', NOW(), NOW());
 
 -- =============================================
 -- Clubs
@@ -41,7 +43,8 @@ VALUES
     (1, 3, '인하 디자인 스튜디오', 'DESIGN', '인하대 디자인 동아리입니다. UI/UX, 그래픽 디자인을 공부해요!', 'INHADSGN', 'https://via.placeholder.com/100', 'https://notion.so/inhadesign', 'APPROVED', 1, NOW(), NOW()),
     (2, 4, 'INU MAKERS', 'DEV', '인천대 메이커스 동아리입니다. 창업과 개발을 함께해요!', 'INUMAKER', 'https://via.placeholder.com/100', 'https://instagram.com/inumakers', 'APPROVED', 1, NOW(), NOW()),
     (2, 5, '인천대 스타트업 클럽', 'STARTUP', '스타트업 아이디어를 함께 발전시켜 나가요!', 'INUSTART', 'https://via.placeholder.com/100', 'https://notion.so/inustartup', 'PENDING', null, null, NOW()),
-    (4, 6, 'KAU 항공 해커톤팀', 'DEV', '항공대 해커톤 준비 동아리입니다.', 'KAUHACK1', 'https://via.placeholder.com/100', 'https://instagram.com/kauhack', 'APPROVED', 1, NOW(), NOW());
+    (4, 6, 'KAU 항공 해커톤팀', 'DEV', '항공대 해커톤 준비 동아리입니다.', 'KAUHACK1', 'https://via.placeholder.com/100', 'https://instagram.com/kauhack', 'APPROVED', 1, NOW(), NOW()),
+    (6, 7, '아주 풀스택 동아리', 'DEV', '아주대 풀스택 개발 동아리입니다. 웹/앱/AI 모두 다뤄요!', 'AJOUDEV1', 'https://via.placeholder.com/100', 'https://instagram.com/ajoudev', 'APPROVED', 1, NOW(), NOW());
 
 -- =============================================
 -- Club Members
@@ -55,7 +58,8 @@ VALUES
     (3, 4, 'PRESIDENT', 'APPROVED', NOW()),
     (3, 5, 'MEMBER', 'APPROVED', NOW()),
     (4, 5, 'PRESIDENT', 'APPROVED', NOW()),
-    (5, 6, 'PRESIDENT', 'APPROVED', NOW());
+    (5, 6, 'PRESIDENT', 'APPROVED', NOW()),
+    (6, 7, 'PRESIDENT', 'APPROVED', NOW());
 
 -- =============================================
 -- Events

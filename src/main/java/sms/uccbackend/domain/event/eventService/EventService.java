@@ -5,8 +5,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sms.uccbackend.domain.event.eventDto.*;
 import sms.uccbackend.domain.event.eventEntity.Event;
+import sms.uccbackend.domain.event.eventEntity.EventCategory;
 import sms.uccbackend.domain.event.eventEntity.EventParticipant;
 import sms.uccbackend.domain.event.eventEntity.EventStatus;
+import sms.uccbackend.domain.event.eventEntity.EventType;
 import sms.uccbackend.domain.event.eventEntity.ParticipantStatus;
 import sms.uccbackend.domain.event.eventRepository.EventParticipantRepository;
 import sms.uccbackend.domain.event.eventRepository.EventRepository;
@@ -59,6 +61,14 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
         return EventResponse.from(event);
+    }
+
+    // 행사 목록 조회
+    public List<EventResponse> getEvents(EventType type, EventStatus status, Long hostClubId, EventCategory category) {
+        return eventRepository.findByFilters(type, status, hostClubId, category)
+                .stream()
+                .map(EventResponse::from)
+                .collect(Collectors.toList());
     }
 
     // 행사 수정

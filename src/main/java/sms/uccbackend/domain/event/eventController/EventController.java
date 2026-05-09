@@ -6,6 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sms.uccbackend.domain.event.eventDto.*;
+import sms.uccbackend.domain.event.eventEntity.EventCategory;
+import sms.uccbackend.domain.event.eventEntity.EventStatus;
+import sms.uccbackend.domain.event.eventEntity.EventType;
 import sms.uccbackend.domain.event.eventService.EventService;
 
 import java.util.List;
@@ -24,6 +27,17 @@ public class EventController {
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(eventService.createEvent(userId, request));
+    }
+
+    // GET /events - 행사 목록
+    @GetMapping
+    public ResponseEntity<List<EventResponse>> getEvents(
+            @RequestParam(required = false) EventType type,
+            @RequestParam(required = false) EventStatus status,
+            @RequestParam(required = false) Long hostClubId,
+            @RequestParam(required = false) EventCategory category
+    ) {
+        return ResponseEntity.ok(eventService.getEvents(type, status, hostClubId, category));
     }
 
     // GET /events/{eventId} - 행사 조회

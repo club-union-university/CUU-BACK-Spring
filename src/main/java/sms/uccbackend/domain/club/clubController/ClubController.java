@@ -3,6 +3,7 @@ package sms.uccbackend.domain.club.clubController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sms.uccbackend.domain.club.clubDto.*;
 import sms.uccbackend.domain.club.clubEntity.ClubCategory;
@@ -20,7 +21,7 @@ public class ClubController {
     // POST /clubs - 동아리 생성
     @PostMapping
     public ResponseEntity<ClubResponse> createClub(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestBody ClubCreateRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -45,7 +46,7 @@ public class ClubController {
     // PATCH /clubs/{clubId} - 동아리 수정
     @PatchMapping("/{clubId}")
     public ResponseEntity<ClubResponse> updateClub(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal Long userId,
             @PathVariable Long clubId,
             @RequestBody ClubUpdateRequest request
     ) {
@@ -55,7 +56,7 @@ public class ClubController {
     // POST /clubs/{clubId}/approve - 동아리 승인
     @PostMapping("/{clubId}/approve")
     public ResponseEntity<ClubResponse> approveClub(
-            @RequestHeader("X-User-Id") Long adminUserId,
+            @AuthenticationPrincipal Long adminUserId,
             @PathVariable Long clubId
     ) {
         return ResponseEntity.ok(clubService.approveClub(adminUserId, clubId));
@@ -73,7 +74,7 @@ public class ClubController {
     // POST /clubs/join - 초대코드로 가입
     @PostMapping("/join")
     public ResponseEntity<ClubMemberResponse> joinClub(
-            @RequestHeader("X-User-Id") Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestBody ClubJoinRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -89,7 +90,7 @@ public class ClubController {
     // DELETE /clubs/{clubId}/members/{userId} - 강퇴/탈퇴
     @DeleteMapping("/{clubId}/members/{targetUserId}")
     public ResponseEntity<Void> removeMember(
-            @RequestHeader("X-User-Id") Long requestUserId,
+            @AuthenticationPrincipal Long requestUserId,
             @PathVariable Long clubId,
             @PathVariable Long targetUserId
     ) {
