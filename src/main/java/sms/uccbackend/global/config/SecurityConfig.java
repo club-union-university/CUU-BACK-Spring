@@ -54,10 +54,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/signup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/schools/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/h2-console", "/h2-console/**").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
+                // H2 콘솔이 frame 안에서 동작하도록 same-origin 허용
+                .headers(headers -> headers.frameOptions(frame ->
+                        frame.sameOrigin()
+                ))
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class

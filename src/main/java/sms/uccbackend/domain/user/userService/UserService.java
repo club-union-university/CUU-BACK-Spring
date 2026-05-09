@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import sms.uccbackend.domain.user.userDto.UserResponse;
 import sms.uccbackend.domain.user.userDto.UserUpdateRequest;
 import sms.uccbackend.domain.user.userEntity.User;
+import sms.uccbackend.domain.user.userEntity.UserRole;
 import sms.uccbackend.domain.user.userRepository.UserRepository;
 
 @Service
@@ -36,7 +37,16 @@ public class UserService {
         if (request.getBio() != null) {
             user.setBio(request.getBio());
         }
+        return UserResponse.from(user);
+    }
 
+    // 테스트용: 내 역할 변경 (SUPER_ADMIN / PRESIDENT / MEMBER)
+    @Transactional
+    public UserResponse updateMyRole(Long userId, UserRole role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+
+        user.setRole(role);
         return UserResponse.from(user);
     }
 }

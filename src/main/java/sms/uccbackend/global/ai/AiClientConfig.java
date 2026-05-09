@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClient;
 public class AiClientConfig {
 
     @Bean
-    public RestClient aiRestClient(@Value("${ai.node-server.base-url}") String baseUrl) {
+    public RestClient aiRestClient(@Value("${ai.node-server.base-url:http://localhost:3000/api}") String baseUrl) {
         return RestClient.builder()
                 .baseUrl(baseUrl)
                 .build();

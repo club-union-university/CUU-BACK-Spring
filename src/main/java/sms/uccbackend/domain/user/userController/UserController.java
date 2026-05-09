@@ -6,6 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sms.uccbackend.domain.user.userDto.UserResponse;
 import sms.uccbackend.domain.user.userDto.UserUpdateRequest;
+import sms.uccbackend.domain.user.userEntity.UserRole;
 import sms.uccbackend.domain.user.userService.UserService;
 
 @RestController
@@ -27,6 +28,15 @@ public class UserController {
             @RequestBody UserUpdateRequest request
     ) {
         return ResponseEntity.ok(userService.updateMe(userId, request));
+    }
+
+    // PATCH /users/me/role/{role} - 테스트용: 내 역할 변경 (SUPER_ADMIN / PRESIDENT / MEMBER)
+    @PatchMapping("/me/role/{role}")
+    public ResponseEntity<UserResponse> updateMyRole(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable UserRole role
+    ) {
+        return ResponseEntity.ok(userService.updateMyRole(userId, role));
     }
 
 }
