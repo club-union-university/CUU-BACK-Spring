@@ -4,8 +4,8 @@ import lombok.Getter;
 import sms.uccbackend.domain.post.postEntity.PostCategory;
 
 @Getter
-public class PostCreateRequest {
-    private PostCategory category;
+public class PostUpdateRequest {
     private String title;
     private String content;
+    private PostCategory category;
 }
