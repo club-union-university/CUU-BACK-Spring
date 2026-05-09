@@ -1,0 +1,4 @@
+# Prefer Docker builds so runtime does not rely on Nixpacks' java -jar quirks.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
