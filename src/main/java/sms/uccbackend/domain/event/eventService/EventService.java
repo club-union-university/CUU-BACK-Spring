@@ -317,7 +317,6 @@ public class EventService {
         flat.put("locationAddress", top.getOrDefault("address", null));
         return flat;
     }
-}
 
     private Map<String, Object> schoolForNest(School school) {
         Map<String, Object> m = new LinkedHashMap<>();
