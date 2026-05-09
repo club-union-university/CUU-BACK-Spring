@@ -3,6 +3,12 @@ package sms.uccbackend.domain.post.postService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sms.uccbackend.domain.event.eventEntity.EventParticipant;
+import sms.uccbackend.domain.event.eventEntity.ParticipantStatus;
+import sms.uccbackend.domain.event.eventRepository.EventParticipantRepository;
+import sms.uccbackend.domain.event.eventRepository.EventRepository;
+import sms.uccbackend.domain.notification.notificationEntity.NotificationType;
+import sms.uccbackend.domain.notification.notificationService.NotificationService;
 import sms.uccbackend.domain.post.postDto.*;
 import sms.uccbackend.domain.post.postEntity.BoardType;
 import sms.uccbackend.domain.post.postEntity.Comment;
@@ -20,6 +26,9 @@ import java.util.stream.Collectors;
 public class PostService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final EventRepository eventRepository;
+    private final EventParticipantRepository eventParticipantRepository;
+    private final NotificationService notificationService;
 
     // 게시글 작성
     @Transactional
@@ -35,7 +44,33 @@ public class PostService {
                 .build();
 
         postRepository.save(post);
+
+        // 행사 게시판에 NOTICE 카테고리 글이 올라가면 참여자(작성자 제외)에게 알림
+        if (boardType == BoardType.EVENT && request.getCategory() == PostCategory.NOTICE) {
+            notifyEventParticipantsOfNotice(targetId, userId, post);
+        }
+
         return PostResponse.from(post);
+    }
+
+    private void notifyEventParticipantsOfNotice(Long eventId, Long authorId, Post post) {
+        String eventTitle = eventRepository.findById(eventId)
+                .map(e -> e.getTitle())
+                .orElse("행사");
+
+        List<EventParticipant> participants = eventParticipantRepository
+                .findByEventIdAndStatus(eventId, ParticipantStatus.APPROVED);
+
+        for (EventParticipant p : participants) {
+            if (p.getUserId().equals(authorId)) continue;
+            notificationService.create(
+                    p.getUserId(),
+                    NotificationType.POST_NOTICE,
+                    "새 공지가 등록되었습니다",
+                    String.format("'%s' 행사에 공지가 올라왔습니다: %s", eventTitle, post.getTitle()),
+                    "/events/" + eventId + "/posts/" + post.getId()
+            );
+        }
     }
 
     // 게시글 목록 조회

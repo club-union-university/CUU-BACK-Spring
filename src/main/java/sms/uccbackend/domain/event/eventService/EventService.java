@@ -1,8 +1,11 @@
 package sms.uccbackend.domain.event.eventService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sms.uccbackend.domain.club.clubEntity.Club;
+import sms.uccbackend.domain.club.clubRepository.ClubRepository;
 import sms.uccbackend.domain.event.eventDto.*;
 import sms.uccbackend.domain.event.eventEntity.Event;
 import sms.uccbackend.domain.event.eventEntity.EventCategory;
@@ -12,6 +15,8 @@ import sms.uccbackend.domain.event.eventEntity.EventType;
 import sms.uccbackend.domain.event.eventEntity.ParticipantStatus;
 import sms.uccbackend.domain.event.eventRepository.EventParticipantRepository;
 import sms.uccbackend.domain.event.eventRepository.EventRepository;
+import sms.uccbackend.domain.notification.notificationEntity.NotificationType;
+import sms.uccbackend.domain.notification.notificationService.NotificationService;
 import sms.uccbackend.global.ai.AiClient;
 
 import java.time.LocalDateTime;
@@ -19,12 +24,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EventService {
     private final EventRepository eventRepository;
     private final EventParticipantRepository eventParticipantRepository;
+    private final ClubRepository clubRepository;
+    private final NotificationService notificationService;
     private final AiClient aiClient;
 
     // 행사 생성
@@ -113,6 +121,20 @@ public class EventService {
         }
 
         event.setStatus(EventStatus.PARTNER_REVIEW);
+
+        // 연합 행사면 파트너 동아리 회장에게 검토 요청 알림
+        if (event.getType() == EventType.INTER_CLUB && event.getPartnerClubId() != null) {
+            clubRepository.findById(event.getPartnerClubId()).ifPresent(partnerClub ->
+                    notificationService.create(
+                            partnerClub.getPresidentUserId(),
+                            NotificationType.EVENT_PROPOSED,
+                            "연합 행사 검토 요청",
+                            String.format("'%s' 행사의 파트너 검토 요청이 도착했습니다.", event.getTitle()),
+                            "/events/" + event.getId()
+                    )
+            );
+        }
+
         return EventResponse.from(event);
     }
 
@@ -126,6 +148,14 @@ public class EventService {
         event.setStatus(EventStatus.APPROVED);
         event.setPartnerRespondedAt(LocalDateTime.now());
 
+        notificationService.create(
+                event.getCreatedByUserId(),
+                NotificationType.EVENT_APPROVED,
+                "행사가 승인되었습니다",
+                String.format("'%s' 행사가 승인되어 모집을 시작할 수 있습니다.", event.getTitle()),
+                "/events/" + event.getId()
+        );
+
         return EventResponse.from(event);
     }
 
@@ -138,6 +168,14 @@ public class EventService {
         event.setStatus(EventStatus.REJECTED);
         event.setRejectReason(request.getRejectReason());
         event.setPartnerRespondedAt(LocalDateTime.now());
+
+        notificationService.create(
+                event.getCreatedByUserId(),
+                NotificationType.EVENT_REJECTED,
+                "행사가 거절되었습니다",
+                String.format("'%s' 행사가 거절되었습니다. 사유: %s", event.getTitle(), request.getRejectReason()),
+                "/events/" + event.getId()
+        );
 
         return EventResponse.from(event);
     }
@@ -188,6 +226,18 @@ public class EventService {
                 .build();
 
         eventParticipantRepository.save(participant);
+
+        // 호스트에게 참여 신청 알림 (본인 행사면 알림 불필요)
+        if (!event.getCreatedByUserId().equals(userId)) {
+            notificationService.create(
+                    event.getCreatedByUserId(),
+                    NotificationType.EVENT_PARTICIPANT_APPLIED,
+                    "새 참여 신청이 도착했습니다",
+                    String.format("'%s' 행사에 새 참여 신청이 도착했습니다.", event.getTitle()),
+                    "/events/" + event.getId() + "/participants"
+            );
+        }
+
         return EventParticipantResponse.from(participant);
     }
 
@@ -209,6 +259,18 @@ public class EventService {
         participant.setStatus(request.getStatus());
         participant.setRespondedAt(LocalDateTime.now());
 
+        Event event = eventRepository.findById(eventId).orElse(null);
+        String eventTitle = event != null ? event.getTitle() : "행사";
+        String resultMsg = request.getStatus() == ParticipantStatus.APPROVED ? "승인되었습니다" : "거절되었습니다";
+
+        notificationService.create(
+                targetUserId,
+                NotificationType.EVENT_PARTICIPANT_RESPONDED,
+                "참여 신청 결과",
+                String.format("'%s' 행사 참여 신청이 %s.", eventTitle, resultMsg),
+                "/events/" + eventId
+        );
+
         return EventParticipantResponse.from(participant);
     }
 
@@ -218,7 +280,10 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
 
+        log.info("[AI Step1] eventId={} | FE→Spring body={}", eventId, body);
         Map<String, Object> result = aiClient.step1(eventId, body);
+        log.info("[AI Step1] eventId={} | Nest→Spring response={}", eventId, result);
+
         event.setStep1Data(result);
         return result;
     }
@@ -229,7 +294,10 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
 
+        log.info("[AI Step2] eventId={} | FE→Spring body={}", eventId, body);
         Map<String, Object> result = aiClient.step2(eventId, body);
+        log.info("[AI Step2] eventId={} | Nest→Spring response={}", eventId, result);
+
         event.setStep2Data(result);
         return result;
     }

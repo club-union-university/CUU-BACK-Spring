@@ -91,6 +91,10 @@ public class Event {
 
     private LocalDateTime partnerRespondedAt;
 
+    // 알림 발송 추적 (중복 방지)
+    private LocalDateTime deadlineReminderSentAt;
+    private LocalDateTime todayReminderSentAt;
+
     @Column(nullable = false)
     private Long createdByUserId;
 

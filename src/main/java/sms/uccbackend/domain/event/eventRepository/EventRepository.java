@@ -8,6 +8,7 @@ import sms.uccbackend.domain.event.eventEntity.EventCategory;
 import sms.uccbackend.domain.event.eventEntity.EventStatus;
 import sms.uccbackend.domain.event.eventEntity.EventType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
@@ -30,5 +31,24 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             @Param("status") EventStatus status,
             @Param("hostClubId") Long hostClubId,
             @Param("category") EventCategory category
+    );
+
+    // 모집 마감 임박(3일 이내) + 아직 미발송 + 모집 중
+    @Query("SELECT e FROM Event e WHERE " +
+            "e.status = 'RECRUITING' AND " +
+            "e.recruitDeadline BETWEEN :now AND :threshold AND " +
+            "e.deadlineReminderSentAt IS NULL")
+    List<Event> findDeadlineApproachingNotReminded(
+            @Param("now") LocalDateTime now,
+            @Param("threshold") LocalDateTime threshold
+    );
+
+    // 당일 시작 + 아직 미발송 (오늘 시작 시각이 startOfDay~endOfDay 내)
+    @Query("SELECT e FROM Event e WHERE " +
+            "e.startAt BETWEEN :startOfDay AND :endOfDay AND " +
+            "e.todayReminderSentAt IS NULL")
+    List<Event> findStartingTodayNotReminded(
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
     );
 }

@@ -8,6 +8,8 @@ import sms.uccbackend.domain.club.clubDto.*;
 import sms.uccbackend.domain.club.clubEntity.*;
 import sms.uccbackend.domain.club.clubRepository.ClubMemberRepository;
 import sms.uccbackend.domain.club.clubRepository.ClubRepository;
+import sms.uccbackend.domain.notification.notificationEntity.NotificationType;
+import sms.uccbackend.domain.notification.notificationService.NotificationService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 public class ClubService {
     private final ClubRepository clubRepository;
     private final ClubMemberRepository clubMemberRepository;
+    private final NotificationService notificationService;
 
     // 동아리 생성
     @Transactional
@@ -91,6 +94,14 @@ public class ClubService {
         club.setApprovedAt(LocalDateTime.now());
         club.setRejectReason(null);
 
+        notificationService.create(
+                club.getPresidentUserId(),
+                NotificationType.CLUB_APPROVED,
+                "동아리가 승인되었습니다",
+                String.format("'%s' 동아리가 관리자에 의해 승인되었습니다.", club.getName()),
+                "/clubs/" + club.getId()
+        );
+
         return ClubResponse.from(club);
     }
 
@@ -102,6 +113,14 @@ public class ClubService {
 
         club.setStatus(ClubStatus.REJECTED);
         club.setRejectReason(request.getRejectReason());
+
+        notificationService.create(
+                club.getPresidentUserId(),
+                NotificationType.CLUB_REJECTED,
+                "동아리 신청이 거절되었습니다",
+                String.format("'%s' 동아리 신청이 거절되었습니다. 사유: %s", club.getName(), request.getRejectReason()),
+                "/clubs/" + club.getId()
+        );
 
         return ClubResponse.from(club);
     }
@@ -128,6 +147,17 @@ public class ClubService {
                 .build();
 
         clubMemberRepository.save(member);
+
+        // 본인이 가입한 경우는 회장에게만 알림 (본인이 회장이면 알림 불필요)
+        if (!club.getPresidentUserId().equals(userId)) {
+            notificationService.create(
+                    club.getPresidentUserId(),
+                    NotificationType.CLUB_MEMBER_JOINED,
+                    "새 부원이 가입했습니다",
+                    String.format("'%s' 동아리에 새 부원이 가입했습니다.", club.getName()),
+                    "/clubs/" + club.getId() + "/members"
+            );
+        }
 
         return ClubMemberResponse.from(member);
     }
