@@ -17,7 +17,9 @@ import sms.uccbackend.global.security.JwtTokenProvider;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class FirebaseTokenVerifier {    public FirebaseToken verify(String idToken) {
+public class FirebaseTokenVerifier {
+
+    public FirebaseToken verify(String idToken) {
     try {
         return FirebaseAuth.getInstance().verifyIdToken(idToken);
     } catch (FirebaseAuthException e) {

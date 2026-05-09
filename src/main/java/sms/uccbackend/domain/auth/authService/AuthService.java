@@ -71,7 +71,14 @@ public class AuthService {
         String firebaseUid = firebaseToken.getUid();
 
         User user = userRepository.findByFirebaseUid(firebaseUid)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+                .orElseGet(() -> {
+                    // DB에 없을 때만 실행되는 블록 (새로 생성)
+                    return User.builder()
+                            .firebaseUid(firebaseUid)
+                            .email(firebaseToken.getEmail())
+                            .profileImage(firebaseToken.getPicture())
+                            .build();
+                });
 
         user.setNickname(request.getNickname());
         user.setSchoolId(request.getSchoolId());
