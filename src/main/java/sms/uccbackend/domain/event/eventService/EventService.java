@@ -289,9 +289,35 @@ public class EventService {
         }
 
         Map<String, Object> result = aiClient.step2(eventId, payload);
+
+        // FE는 result.locationName / result.locationAddress 를 직접 꺼내 PATCH 하므로
+        // recommendedPlaces 톱 1개를 톱레벨로 평탄화한다.
+        result = flattenTopPlace(result);
+
         event.setStep2Data(result);
         return result;
     }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> flattenTopPlace(Map<String, Object> nestResult) {
+        if (nestResult == null) return nestResult;
+        Object placesRaw = nestResult.get("recommendedPlaces");
+        if (!(placesRaw instanceof List<?> placesList) || placesList.isEmpty()) {
+            return nestResult;
+        }
+        Object firstRaw = placesList.get(0);
+        if (!(firstRaw instanceof Map<?, ?> firstMap)) {
+            return nestResult;
+        }
+
+        Map<String, Object> top = (Map<String, Object>) firstMap;
+        Map<String, Object> flat = new LinkedHashMap<>(nestResult);
+        flat.put("locationName", top.get("name"));
+        // Nest 현재 스펙은 address를 주지 않음 — 추후 Maps 연동 시 채움
+        flat.put("locationAddress", top.getOrDefault("address", null));
+        return flat;
+    }
+}
 
     private Map<String, Object> schoolForNest(School school) {
         Map<String, Object> m = new LinkedHashMap<>();

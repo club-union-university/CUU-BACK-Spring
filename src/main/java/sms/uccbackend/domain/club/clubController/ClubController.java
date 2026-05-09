@@ -27,14 +27,15 @@ public class ClubController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(clubService.createClub(userId, request));
     }
-    // GET /clubs - 동아리 목록
+    // GET /clubs - 내가 가입한 동아리 목록
     @GetMapping
     public ResponseEntity<List<ClubResponse>> getClubs(
+            @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) Long schoolId,
             @RequestParam(required = false) ClubCategory category,
             @RequestParam(required = false) ClubStatus status
     ) {
-        return ResponseEntity.ok(clubService.getClubs(schoolId, category, status));
+        return ResponseEntity.ok(clubService.getClubs(userId, schoolId, category, status));
     }
 
     // GET /clubs/{clubId} - 동아리 조회

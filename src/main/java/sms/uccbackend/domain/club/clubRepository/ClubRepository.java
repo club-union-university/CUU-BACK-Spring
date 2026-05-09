@@ -32,4 +32,17 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
             @Param("category") ClubCategory category,
             @Param("status") ClubStatus status
     );
+
+    @Query("SELECT c FROM Club c " +
+            "JOIN ClubMember m ON m.clubId = c.id " +
+            "WHERE m.userId = :userId AND m.status = 'APPROVED' AND " +
+            "(:schoolId IS NULL OR c.schoolId = :schoolId) AND " +
+            "(:category IS NULL OR c.category = :category) AND " +
+            "(:status IS NULL OR c.status = :status)")
+    List<Club> findJoinedByUserAndFilters(
+            @Param("userId") Long userId,
+            @Param("schoolId") Long schoolId,
+            @Param("category") ClubCategory category,
+            @Param("status") ClubStatus status
+    );
 }
