@@ -128,7 +128,10 @@ public class EventController {
 
     // POST /events/{eventId}/ai/step2 - Gemini Step 2 정제 (장소/공지글/모집정보)
     @PostMapping("/{eventId}/ai/step2")
-    public ResponseEntity<Map<String, Object>> runAiStep2(@PathVariable Long eventId) {
-        return ResponseEntity.ok(eventService.runAiStep2(eventId));
+    public ResponseEntity<Map<String, Object>> runAiStep2(
+            @PathVariable Long eventId,
+            @RequestBody(required = false) EventAiStep2Request request
+    ) {
+        return ResponseEntity.ok(eventService.runAiStep2(eventId, request));
     }
 }

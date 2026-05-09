@@ -21,6 +21,7 @@ import sms.uccbackend.domain.school.schoolRepository.SchoolRepository;
 import sms.uccbackend.global.ai.AiClient;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -222,24 +223,35 @@ public class EventService {
         return EventParticipantResponse.from(participant);
     }
 
-    // AI Step 1: 자연어 입력 → 제목/카테고리/설명 보강
+    // AI Step 1: 자연어 입력 → 제목/카테고리/설명 보강 (Nest whitelist 키만 전송)
     @Transactional
     public Map<String, Object> runAiStep1(Long eventId, EventAiStep1Request request) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
 
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("rawInput", request.getRawInput());
-        payload.put("event", eventSummary(event));
+        Club hostClub = clubRepository.findById(event.getHostClubId())
+                .orElseThrow(() -> new IllegalArgumentException("주최 동아리를 찾을 수 없습니다."));
 
-        Map<String, Object> result = aiClient.step1(payload);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        if (request.getNaturalText() != null) payload.put("naturalText", request.getNaturalText());
+        if (event.getType() != null) payload.put("eventType", event.getType().name());
+        if (hostClub.getName() != null) payload.put("hostClubName", hostClub.getName());
+
+        if (event.getType() == EventType.INTER_CLUB && event.getPartnerClubId() != null) {
+            clubRepository.findById(event.getPartnerClubId())
+                    .ifPresent(partner -> payload.put("partnerClubName", partner.getName()));
+        }
+
+        if (request.getPreferredArea() != null) payload.put("preferredArea", request.getPreferredArea());
+
+        Map<String, Object> result = aiClient.step1(eventId, payload);
         event.setStep1Data(result);
         return result;
     }
 
-    // AI Step 2: 장소/공지글/모집정보 보강
+    // AI Step 2: 장소/공지글/모집정보 보강 (Nest whitelist 키만 전송)
     @Transactional
-    public Map<String, Object> runAiStep2(Long eventId) {
+    public Map<String, Object> runAiStep2(Long eventId, EventAiStep2Request request) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 행사입니다."));
 
@@ -252,62 +264,48 @@ public class EventService {
         School hostSchool = schoolRepository.findById(hostClub.getSchoolId())
                 .orElseThrow(() -> new IllegalArgumentException("주최 학교를 찾을 수 없습니다."));
 
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("step1Data", event.getStep1Data());
-        payload.put("event", eventSummary(event));
-        payload.put("hostSchool", schoolSummary(hostSchool));
+        List<Map<String, Object>> schools = new ArrayList<>();
+        schools.add(schoolForNest(hostSchool));
 
         if (event.getType() == EventType.INTER_CLUB && event.getPartnerClubId() != null) {
             Club partnerClub = clubRepository.findById(event.getPartnerClubId())
                     .orElseThrow(() -> new IllegalArgumentException("파트너 동아리를 찾을 수 없습니다."));
             School partnerSchool = schoolRepository.findById(partnerClub.getSchoolId())
                     .orElseThrow(() -> new IllegalArgumentException("파트너 학교를 찾을 수 없습니다."));
-            payload.put("partnerSchool", schoolSummary(partnerSchool));
-        } else {
-            List<SchoolFacility> facilities = schoolFacilityRepository.findBySchoolId(hostSchool.getId());
-            payload.put("facilities", facilities.stream().map(this::facilitySummary).toList());
+            schools.add(schoolForNest(partnerSchool));
         }
 
-        Map<String, Object> result = aiClient.step2(payload);
+        List<Map<String, Object>> facilities = schoolFacilityRepository.findBySchoolId(hostSchool.getId())
+                .stream()
+                .map(this::facilityForNest)
+                .toList();
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("step1Result", event.getStep1Data());
+        payload.put("schools", schools);
+        payload.put("facilities", facilities);
+        if (request != null && request.getPreferredArea() != null) {
+            payload.put("preferredArea", request.getPreferredArea());
+        }
+
+        Map<String, Object> result = aiClient.step2(eventId, payload);
         event.setStep2Data(result);
         return result;
     }
 
-    private Map<String, Object> eventSummary(Event event) {
+    private Map<String, Object> schoolForNest(School school) {
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", event.getId());
-        m.put("type", event.getType());
-        m.put("hostClubId", event.getHostClubId());
-        m.put("partnerClubId", event.getPartnerClubId());
-        m.put("title", event.getTitle());
-        m.put("category", event.getCategory());
-        m.put("description", event.getDescription());
-        m.put("format", event.getFormat());
-        m.put("startAt", event.getStartAt());
-        m.put("endAt", event.getEndAt());
-        m.put("recruitDeadline", event.getRecruitDeadline());
-        m.put("maxParticipants", event.getMaxParticipants());
-        return m;
-    }
-
-    private Map<String, Object> schoolSummary(School school) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", school.getId());
         m.put("name", school.getName());
-        m.put("region", school.getRegion());
         m.put("lat", school.getLat());
         m.put("lng", school.getLng());
         return m;
     }
 
-    private Map<String, Object> facilitySummary(SchoolFacility facility) {
+    private Map<String, Object> facilityForNest(SchoolFacility facility) {
         Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", facility.getId());
         m.put("name", facility.getName());
-        m.put("facilityType", facility.getFacilityType());
+        m.put("type", facility.getFacilityType() != null ? facility.getFacilityType().name() : null);
         m.put("capacity", facility.getCapacity());
-        m.put("lat", facility.getLat());
-        m.put("lng", facility.getLng());
         return m;
     }
 }

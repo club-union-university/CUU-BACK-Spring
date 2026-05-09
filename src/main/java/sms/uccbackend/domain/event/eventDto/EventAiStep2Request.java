@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventAiStep1Request {
-    private String naturalText;
+public class EventAiStep2Request {
     private String preferredArea;
 }

@@ -17,18 +17,18 @@ public class AiClient {
 
     private final RestClient aiRestClient;
 
-    public Map<String, Object> step1(Map<String, Object> payload) {
+    public Map<String, Object> step1(Long eventId, Map<String, Object> payload) {
         return aiRestClient.post()
-                .uri("/ai/event/step1")
+                .uri("/events/{id}/ai/step1", eventId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(payload)
                 .retrieve()
                 .body(JSON_OBJECT);
     }
 
-    public Map<String, Object> step2(Map<String, Object> payload) {
+    public Map<String, Object> step2(Long eventId, Map<String, Object> payload) {
         return aiRestClient.post()
-                .uri("/ai/event/step2")
+                .uri("/events/{id}/ai/step2", eventId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(payload)
                 .retrieve()
