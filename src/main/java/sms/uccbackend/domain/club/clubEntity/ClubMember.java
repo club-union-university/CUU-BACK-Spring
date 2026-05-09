@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
         uniqueConstraints = @UniqueConstraint(columnNames = {"club_id", "user_id"})
 )
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor

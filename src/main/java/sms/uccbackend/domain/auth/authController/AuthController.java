@@ -3,6 +3,7 @@ package sms.uccbackend.domain.auth.authController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import sms.uccbackend.domain.auth.authDto.LoginRequest;
 import sms.uccbackend.domain.auth.authDto.LoginResponse;
@@ -36,7 +37,7 @@ public class AuthController {
 
     // GET /auth/me - 내 정보 조회
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getMe(@RequestHeader("X-User-Id") Long userId) {
+    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal Long userId) {
         return ResponseEntity.ok(authService.getMe(userId));
     }
 }
